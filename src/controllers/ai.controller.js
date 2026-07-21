@@ -3,8 +3,8 @@ import { groqConfig } from "../config/groq.config.js";
 
 export const generateCode = async (req, res) => {
   const { prompt } = req.body;
-  var systemMsg =
-    "You are a code generator. Generate code EXACTLY in the programming language the user specifies. If user says Python, write Python using print(). If user says C, write C using printf(). If user says Java, write Java using System.out.println(). If no language is mentioned, write JavaScript using console.log(). Rules: No markdown, no backticks, no code fences, no comments, no explanation. Raw executable code only.";
+  const systemMsg =
+    "You are a senior code generator. Generate code EXACTLY in the programming language the user specifies. If user says JavaScript, write modern JavaScript using console.log() and ALWAYS declare loop variables using 'let' or 'const' (e.g., for(let i=1; i<=100; i++)). Rules: No markdown, no backticks, no code fences, no comments, no explanation. Raw executable code only.";
 
   try {
     const response = await fetch(groqConfig.endpoint, {
