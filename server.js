@@ -11,42 +11,32 @@ app.use(express.json());
 
 app.post("/api/generate", async (req, res) => {
   const { prompt } = req.body;
-
+  
   if (!prompt) {
     return res.status(400).json({ error: "Prompt is required" });
   }
 
   try {
     const apiKey = process.env.GEMINI_API_KEY || process.env.GROQ_API_KEY;
-
-    // Using Google Gemini Flash API endpoint directly
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: `You are an expert multi-language code generation engine for BlindCoder. Return ONLY raw executable code inside standard markdown code blocks. Always target the exact language requested (Python, JavaScript, C, C++, Java, Ruby, Perl, C#, Go, Rust, etc.). Prompt: ${prompt}`,
-                },
-              ],
-            },
-          ],
-        }),
-      },
-    );
+    
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              { text: `You are BlindCoder engine. Return ONLY raw executable code inside standard markdown code blocks. Target the exact language requested. Prompt: ${prompt}` }
+            ]
+          }
+        ]
+      })
+    });
 
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(
-        data.error?.message || "Failed to communicate with Gemini API",
-      );
+      throw new Error(data.error?.message || "Failed to communicate with AI API");
     }
 
     const rawContent = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
