@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import fetch from "node-fetch";
+import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -9,49 +9,27 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Initialize Google Gen AI client using GEMINI_API_KEY
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
 app.post("/api/generate", async (req, res) => {
   const { prompt } = req.body;
-
+  
   if (!prompt) {
     return res.status(400).json({ error: "Prompt is required" });
   }
 
   try {
-    const response = await fetch(
-      "https://api.groq.com/openai/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-        },
-        body: JSON.stringify({
-          model: "llama-3.1-8b-instant",
-          messages: [
-            {
-              role: "system",
-              content:
-                "You are an expert multi-language code generation engine for BlindCoder. Return ONLY raw executable code inside standard markdown code blocks. Always target the exact language requested (supporting Python, JavaScript, C, C++, Java, Ruby, Perl, C#, Go, Rust, PHP, etc.).",
-            },
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-          temperature: 0.2,
-        }),
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash", // Fast, powerful, and free-tier friendly model
+      contents: prompt,
+      config: {
+        systemInstruction: "You are an expert multi-language code generation engine for BlindCoder. Return ONLY raw executable code inside standard markdown code blocks. Always target the exact language requested (supporting Python, JavaScript, C, C++, Java, Ruby, Perl, C#, Go, Rust, PHP, etc.).",
+        temperature: 0.2,
       },
-    );
+    });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        data.error?.message || "Failed to communicate with Groq API",
-      );
-    }
-
-    const rawContent = data.choices[0]?.message?.content || "";
+    const rawContent = response.text || "";
     const codeMatch = rawContent.match(/```[\w]*\n([\s\S]*?)```/);
     const cleanCode = codeMatch ? codeMatch[1].trim() : rawContent.trim();
 
