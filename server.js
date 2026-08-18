@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { GoogleGenAI } from "@google/genai";
+import fetch from "node-fetch";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -9,32 +9,53 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Initialize Google Gen AI client using GEMINI_API_KEY
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
 app.post("/api/generate", async (req, res) => {
   const { prompt } = req.body;
-  
+
   if (!prompt) {
     return res.status(400).json({ error: "Prompt is required" });
   }
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash", // Fast, powerful, and free-tier friendly model
-      contents: prompt,
-      config: {
-        systemInstruction: "You are an expert multi-language code generation engine for BlindCoder. Return ONLY raw executable code inside standard markdown code blocks. Always target the exact language requested (supporting Python, JavaScript, C, C++, Java, Ruby, Perl, C#, Go, Rust, PHP, etc.).",
-        temperature: 0.2,
-      },
-    });
+    const apiKey = process.env.GEMINI_API_KEY || process.env.GROQ_API_KEY;
 
-    const rawContent = response.text || "";
+    // Using Google Gemini Flash API endpoint directly
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: `You are an expert multi-language code generation engine for BlindCoder. Return ONLY raw executable code inside standard markdown code blocks. Always target the exact language requested (Python, JavaScript, C, C++, Java, Ruby, Perl, C#, Go, Rust, etc.). Prompt: ${prompt}`,
+                },
+              ],
+            },
+          ],
+        }),
+      },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error?.message || "Failed to communicate with Gemini API",
+      );
+    }
+
+    const rawContent = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
     const codeMatch = rawContent.match(/```[\w]*\n([\s\S]*?)```/);
     const cleanCode = codeMatch ? codeMatch[1].trim() : rawContent.trim();
 
     res.json({ code: cleanCode });
   } catch (err) {
+    console.error("Backend Error:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
