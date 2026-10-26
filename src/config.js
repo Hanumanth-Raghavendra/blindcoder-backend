@@ -32,9 +32,11 @@ export const config = {
     apiKey: process.env.GEMINI_API_KEY,
     baseUrl: "https://generativelanguage.googleapis.com/v1beta",
     // "-latest" aliases always point at Google's newest Flash model, so they
-    // never get deprecated out from under you.
-    models: list(process.env.GEMINI_MODELS, ["gemini-flash-latest", "gemini-flash-lite-latest"]),
-    timeoutMs: num(process.env.GEMINI_TIMEOUT_MS, 15000),
+    // never get deprecated out from under you. A pinned stable model sits
+    // behind it in case the newest release is overloaded; if it is ever
+    // retired, the router just skips it.
+    models: list(process.env.GEMINI_MODELS, ["gemini-flash-latest", "gemini-3.6-flash", "gemini-flash-lite-latest"]),
+    timeoutMs: num(process.env.GEMINI_TIMEOUT_MS, 12000),
   },
 
   groq: {
