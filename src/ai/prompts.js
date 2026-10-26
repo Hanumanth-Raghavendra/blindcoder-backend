@@ -5,13 +5,14 @@ const PROGRAM_RULES = `Rules for every program:
 - Write a complete program that runs as-is and prints its results to standard output.
 - Never read from standard input, files, the network or command-line arguments. If the task needs input values, hard-code sensible example values and print them as part of the output.
 - Use only the standard library unless the user explicitly asks for a package.
-- Java: put main in a class named Main. C#: use a class named Program. Go: use package main.
+- Java: name the public class in PascalCase after what the program does (for example PrimeNumbers or ReverseString), never Main. C#: use a class named Program. Go: use package main.
 - JavaScript: modern syntax, declare variables with let or const, print with console.log.
 - Python: print with print().
 - No comments in the code (the code is read aloud). Keep it short, clear and correct.`;
 
 const OUTPUT_FORMAT = `Reply in exactly this format and nothing else:
 SUMMARY: <one short plain-English sentence, written to be read aloud, saying what the program does and what it prints>
+FILENAME: <a short descriptive file name in snake_case without extension, 1 to 4 words, for example prime_numbers or reverse_string>
 \`\`\`<language id, one of: ${LANG_LIST}>
 <the complete program>
 \`\`\``;
