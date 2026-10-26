@@ -55,6 +55,14 @@ test("fails over on timeouts / network errors (status 0)", async () => {
   assert.equal((await new AiRouter([a, b], { log: quiet }).complete({})).provider, "b");
 });
 
+test("a timeout skips the provider's other models for this request", async () => {
+  const a = fakeProvider("a", ["a1", "a2", "a3"], () => fail(0, "Timed out after 12000ms"));
+  const b = fakeProvider("b", ["b1"], () => ({ text: "B", model: "b1" }));
+  const r = await new AiRouter([a, b], { log: quiet }).complete({});
+  assert.equal(r.provider, "b");
+  assert.deepEqual(a.calls, ["a1"]);
+});
+
 test("when every provider is cooling down it still tries them", async () => {
   let n = 0;
   const a = fakeProvider("a", ["a1"], () => (++n === 1 ? fail(503) : { text: "A", model: "a1" }));

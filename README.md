@@ -20,7 +20,7 @@ The server tries providers in order and **fails over instantly** on rate limits,
 
 | Order | Provider | Default model(s) | Why |
 | --- | --- | --- | --- |
-| 1 | Google Gemini | `gemini-flash-latest`, `gemini-flash-lite-latest` | Best free quality. `-latest` aliases always point at Google's newest Flash, so they never get deprecated |
+| 1 | Google Gemini | `gemini-flash-latest`, `gemini-3.6-flash`, `gemini-flash-lite-latest` | Best free quality. `-latest` aliases always point at Google's newest Flash, so they never get deprecated; 3.6 is a stable backup if the newest release is overloaded |
 | 2 | Groq | `openai/gpt-oss-120b`, `openai/gpt-oss-20b` | Free, no card, extremely fast. Live model list is checked, so retired models are skipped automatically |
 | 3 | OpenRouter (optional) | `openrouter/free` | Last resort; routes only to free models |
 
@@ -38,7 +38,7 @@ The server tries providers in order and **fails over instantly** on rate limits,
 npm install
 cp .env.example .env   # paste your keys
 npm run dev            # http://localhost:5000
-npm test               # 31 tests, no network or keys needed
+npm test               # 32 tests, no network or keys needed
 ```
 
 Requires Node 18.17+.

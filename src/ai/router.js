@@ -66,7 +66,11 @@ export class AiRouter {
     const queue = healthy.length ? healthy : all;
 
     const errors = [];
+    const congested = new Set(); // providers that timed out during this request
     for (const { provider, model, key } of queue) {
+      // A timeout usually means the whole provider is congested; don't make the
+      // user wait through each of its models — move on to the next provider.
+      if (congested.has(provider.name)) continue;
       const started = Date.now();
       try {
         const result = await provider.complete(model, request);
@@ -78,6 +82,7 @@ export class AiRouter {
         const wait = cooldownFor(err);
         if (wait) this.cooldownUntil.set(key, Date.now() + wait);
         if (err.status === 404) provider.forgetModels?.();
+        if (err.status === 0 && /timed out/i.test(err.message)) congested.add(provider.name);
         errors.push(`${key}: ${err.status || "network"} ${err.message}`);
         this.log.warn?.(`[ai] ${key} failed (${err.status || "network"}): ${err.message}`);
       }
